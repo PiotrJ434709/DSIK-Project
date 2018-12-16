@@ -108,7 +108,8 @@ void DownloadFile(int gn)
     }
 
     printf("Plik ma dlugosc: %li\n", fileSize);
-
+    
+    memset(path, 0, 512);
     if(recv(gn, path, 512, 0) <= 0)
     {
         printf("Blad przy odbieraniu sciezki\n");
