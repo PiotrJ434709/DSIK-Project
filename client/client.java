@@ -1,15 +1,15 @@
 import java.io.*;
 import java.net.*;
 import java.nio.*;
+import java.util.*;
+
 
 public class client {
 
     public static void CloseConnection(DataOutputStream dos)
     {
-        String option = "3";
-
         try {
-            dos.write(option.getBytes(), 0, option.length());
+			dos.writeByte('3');
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -19,11 +19,9 @@ public class client {
     public static void DownloadFile(DataInputStream dis, DataOutputStream dos) {
 
         byte[] buffer = new byte[1024];
-        String option = "1";
-
         try {
 	    
-            dos.write(option.getBytes(), 0, option.length());
+            dos.writeByte('1');
 
             BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 
@@ -36,10 +34,10 @@ public class client {
             int fileSize = dis.readInt();
             dis.skipBytes(4);
 
-	    if(fileSize == 0){
-		System.out.println("Serwer: *** Plik nie istnieje *** \n");
-		return;
-	    }
+			if(fileSize == 0){
+				System.out.println("Serwer: *** Plik nie istnieje *** \n");
+				return;
+			}
 
             System.out.println("Plik ma dlugosc: " + fileSize);
             System.out.println("Pobieram plik...");
@@ -51,7 +49,7 @@ public class client {
             int received;
             int allReceived = 0;
 
-            while (allReceived < fileSize) {                              //odczytuje plik
+            while (allReceived < fileSize) {                            
                 received = dis.read(buffer, 0, 1024);
                 if (received < 0)
                     break;
@@ -70,13 +68,13 @@ public class client {
 
         catch (Exception e) {
             e.printStackTrace();
+			System.exit(1);
         }
     }
 
     public static void SendFile(DataInputStream dis, DataOutputStream dos) {
 
         byte[] buffer = new byte[1024];
-        String option = "2";
 
         try {
 
@@ -89,9 +87,16 @@ public class client {
             if(!f.exists()) {
                 System.out.println("Zla sciezka, taki plik nie istnieje\n");
                 return;
-            }
+            }	
 
-	    dos.write(option.getBytes(), 0, option.length());
+			dos.writeByte('2');
+
+			System.out.println("Wysylam sciezke: " + path);
+			System.out.println("Dlugosc sciezki: " + path.length());
+
+			path.trim();
+			//System.out.println("Bajty sciezki: " + Arrays.toString(path.getBytes()));
+            dos.write(path.getBytes(), 0, path.length());
 
             long fileSize = f.length();
 
@@ -102,10 +107,7 @@ public class client {
             buf.order(ByteOrder.LITTLE_ENDIAN);
             buf.putLong(fileSize);
 
-            dos.write(buf.array(), 0, Long.BYTES);
-
-            System.out.println("Wysylam sciezke: " + path);
-            dos.write(path.getBytes(), 0, path.length());
+            dos.write(buf.array(), 0, Long.BYTES);	  
 
             System.out.println("Wysylam plik...");
 
@@ -114,7 +116,7 @@ public class client {
 
             FileInputStream fis = new FileInputStream(f);
 
-            while (allRead < fileSize)							                    //wysylaj plik
+            while (allRead < fileSize)							                   
             {
                 read = fis.read(buffer, 0, 1024);
                 dos.write(buffer, 0 ,read);
@@ -128,10 +130,10 @@ public class client {
                 System.out.println("*** Plik wyslany poprawnie ***\n");
             else
                 System.out.println("*** Blad przy wysylaniu pliku ***\n");
-
         }
         catch (Exception e) {
             e.printStackTrace();
+			System.exit(1);
         }
     }
 
@@ -168,7 +170,8 @@ public class client {
                 }
             }
             catch (Exception e) {
-                System.out.println("*menu error*\n");
+                System.out.println(" *** Menu error *** ");
+				e.printStackTrace();
             }
         }
     }

@@ -20,35 +20,34 @@ void SendFile(int gn)
     memset(path, 0, 512);
     if (recv(gn, path, 512, 0) <= 0)
     {
-        printf("Blad przy odczycie sciezki\n");
-        return;
+        fprintf(stderr,"Blad przy odczycie sciezki\n");
+		exit(1);
     }
 
     printf("Klient chce plik: %s\n", path);
 
+	fileSize = 0;
     if (stat(path, &fileinfo) < 0)
     {
         printf("Nie moge pobrac informacji o pliku\n");
-	fileSize = 0;
-	fileSize = htonl(fileSize);
-	if (send(gn, &fileSize, sizeof(long), 0) != sizeof(long))
-	  {
-	    printf("Blad przy wysylaniu wielkosci pliku\n");
-	    return;
-	  }
+		fileSize = htonl(fileSize);
+		if (send(gn, &fileSize, sizeof(long), 0) != sizeof(long))
+		{
+			fprintf(stderr,"Blad przy wysylaniu wielkosci pliku: 0\n");
+			exit(1);
+		}
         return;
     }
 
     if (fileinfo.st_size == 0)
     {
-        printf("Rozmiar pliku: 0\n");
-	fileSize = 0;
-	fileSize = htonl(fileSize);
-	if (send(gn, &fileSize, sizeof(long), 0) != sizeof(long))
-	  {
-	    printf("Blad przy wysylaniu wielkosci pliku\n");
-	    return;
-	  }
+		printf("Rozmiar pliku: 0\n");
+		fileSize = htonl(fileSize);
+		if (send(gn, &fileSize, sizeof(long), 0) != sizeof(long))
+		{
+			fprintf(stderr,"Blad przy wysylaniu wielkosci pliku: 0\n");
+			exit(1);
+		}
         return;
     }
 
@@ -58,8 +57,8 @@ void SendFile(int gn)
 
     if (send(gn, &fileSize, sizeof(long), 0) != sizeof(long))
     {
-        printf("Blad przy wysylaniu wielkosci pliku\n");
-        return;
+        fprintf(stderr,"Blad przy wysylaniu wielkosci pliku\n");
+        exit(1);
     }
 
     fileSize = fileinfo.st_size;
@@ -68,8 +67,8 @@ void SendFile(int gn)
     file = fopen(path, "rb");
     if (file == NULL)
     {
-        printf("Blad przy otwarciu pliku\n");
-        return;
+        fprintf(stderr,"Blad przy otwarciu pliku\n");
+        exit(1);
     }
 
     while (allSent < fileSize)
@@ -80,57 +79,61 @@ void SendFile(int gn)
             break;
         allSent += sent;
     }
-    printf("Wyslano %ld bajtow \n", allSent);
+	printf("Wyslano %ld bajtow \n", allSent);
 
-    if (allSent == fileSize)
-        printf("*** Plik wyslany poprawnie ***\n");
-    else
-        printf("*** Blad przy wysylaniu pliku ***\n");
+	if (allSent == fileSize)
+		printf("*** Plik wyslany poprawnie ***\n");
+	else
+    {
+		fprintf(stderr,"*** Blad przy wysylaniu pliku ***\n");
+		exit(1);
+    }
 
-    fclose(file);
-    return;
+	fclose(file);
+	return;
 }
 
 void DownloadFile(int gn)
 {
-
-    struct hostent *h;
-    char name[512];
-    char buffer[1025];
+    char *fname;
+    unsigned char buffer[1024];
     char path[512];
     FILE* file;
     long fileSize, received, allReceived;
 
-    if (recv(gn, &fileSize, sizeof(long), 0) != sizeof(long))
-    {
-        printf("Blad przy odbieraniu dlugosci\n");
-        return;
-    }
-
-    printf("Plik ma dlugosc: %li\n", fileSize);
-    
     memset(path, 0, 512);
     if(recv(gn, path, 512, 0) <= 0)
     {
-        printf("Blad przy odbieraniu sciezki\n");
-        return;
+        fprintf(stderr,"Blad przy odbieraniu sciezki\n");
+        exit(1);
     }
 
+    printf("Sciezka pliku: %s\n", path);
+    printf("Dlugosc sciezki: %ld\n", strlen(path));
+
+    if (recv(gn, &fileSize, sizeof(long), 0) != sizeof(long))
+    {
+        fprintf(stderr,"Blad przy odbieraniu dlugosci\n");
+        exit(1);
+    }
+
+    printf("Plik ma dlugosc: %li\n", fileSize);  
+
     allReceived = 0;
-    char* fname = basename(path);
 
-    printf("Pobieram plik o nazwie %s...\n",fname);
-
+    fname = basename(path);
     file = fopen(fname, "ab");
     if(NULL == file)
     {
-        printf("Blad przy otwieraniu pliku");
-        return;
+        fprintf(stderr,"Blad przy otwieraniu pliku");
+        exit(1);
     }
+
+    printf("Pobieram plik o nazwie %s...\n",fname);
 
     while (allReceived < fileSize)
     {
-        memset(buffer, 0, 1025);
+        memset(buffer, 0, 1024);
         received = recv(gn, buffer, 1024, 0);
         if (received < 0)
             break;
@@ -140,31 +143,33 @@ void DownloadFile(int gn)
 
     printf("Odebrano %ld bajtow \n", allReceived);
     if (allReceived != fileSize)
-        printf("*** Blad w odbiorze pliku ***\n");
+    {
+		fprintf(stderr,"*** Blad w odbiorze pliku ***\n");
+		exit(1);
+    }
     else
         printf("*** Plik odebrany poprawnie ***\n");
 
     fclose(file);
     return;
-
 }
 
 
 
 void ServeConnection(int gn)
 {
-    unsigned char option[2];
+    unsigned char option;
 
     while(1)
     {
         printf("Czekam na polecenia klienta...\n");
-        if (recv(gn, option, 2, 0) <= 0)
+        if (recv(gn, &option, 1, 0) <= 0)
         {
-            printf("Blad przy odczycie opcji\n");
-            return;
+            fprintf(stderr,"Blad przy odczycie opcji\n");
+            exit(1);
         }
 
-        switch(option[0])
+        switch(option)
         {
             case '1': SendFile(gn);
                     break;
@@ -187,7 +192,6 @@ int main(int argc, char **argv)
         printf("Podaj numer portu jako parametr\n");
         return 1;
     }
-
 
     sock_listen = socket(PF_INET, SOCK_STREAM, 0);
 
