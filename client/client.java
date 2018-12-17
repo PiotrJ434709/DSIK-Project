@@ -9,7 +9,7 @@ public class client {
     public static void CloseConnection(DataOutputStream dos)
     {
         try {
-			dos.writeByte('3');
+            dos.writeByte('3');
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -20,7 +20,7 @@ public class client {
 
         byte[] buffer = new byte[1024];
         try {
-	    
+
             dos.writeByte('1');
 
             BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
@@ -34,10 +34,10 @@ public class client {
             int fileSize = dis.readInt();
             dis.skipBytes(4);
 
-			if(fileSize == 0){
-				System.out.println("Serwer: *** Plik nie istnieje *** \n");
-				return;
-			}
+            if(fileSize == 0){
+                System.out.println("Serwer: *** Plik nie istnieje *** \n");
+                return;
+            }
 
             System.out.println("Plik ma dlugosc: " + fileSize);
             System.out.println("Pobieram plik...");
@@ -49,7 +49,7 @@ public class client {
             int received;
             int allReceived = 0;
 
-            while (allReceived < fileSize) {                            
+            while (allReceived < fileSize) {
                 received = dis.read(buffer, 0, 1024);
                 if (received < 0)
                     break;
@@ -68,7 +68,7 @@ public class client {
 
         catch (Exception e) {
             e.printStackTrace();
-			System.exit(1);
+            System.exit(1);
         }
     }
 
@@ -87,15 +87,15 @@ public class client {
             if(!f.exists()) {
                 System.out.println("Zla sciezka, taki plik nie istnieje\n");
                 return;
-            }	
+            }
 
-			dos.writeByte('2');
+            dos.writeByte('2');
 
-			System.out.println("Wysylam sciezke: " + path);
-			System.out.println("Dlugosc sciezki: " + path.length());
+            System.out.println("Wysylam sciezke: " + path);
+            System.out.println("Dlugosc sciezki: " + path.length());
 
-			path.trim();
-			//System.out.println("Bajty sciezki: " + Arrays.toString(path.getBytes()));
+            path.trim();
+            //System.out.println("Bajty sciezki: " + Arrays.toString(path.getBytes()));
             dos.write(path.getBytes(), 0, path.length());
 
             long fileSize = f.length();
@@ -107,7 +107,7 @@ public class client {
             buf.order(ByteOrder.LITTLE_ENDIAN);
             buf.putLong(fileSize);
 
-            dos.write(buf.array(), 0, Long.BYTES);	  
+            dos.write(buf.array(), 0, Long.BYTES);
 
             System.out.println("Wysylam plik...");
 
@@ -116,7 +116,7 @@ public class client {
 
             FileInputStream fis = new FileInputStream(f);
 
-            while (allRead < fileSize)							                   
+            while (allRead < fileSize)
             {
                 read = fis.read(buffer, 0, 1024);
                 dos.write(buffer, 0 ,read);
@@ -133,7 +133,7 @@ public class client {
         }
         catch (Exception e) {
             e.printStackTrace();
-			System.exit(1);
+            System.exit(1);
         }
     }
 
@@ -171,7 +171,7 @@ public class client {
             }
             catch (Exception e) {
                 System.out.println(" *** Menu error *** ");
-				e.printStackTrace();
+                e.printStackTrace();
             }
         }
     }
@@ -185,7 +185,7 @@ public class client {
             return;
         }
         try {
-	    
+
             InetAddress addr = InetAddress.getByName(args[0]);
             int port = Integer.parseInt(args[1]);
 
