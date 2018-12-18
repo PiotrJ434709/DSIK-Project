@@ -48,7 +48,7 @@ void SendFile(int gn)
 
     printf("Dlugosc pliku: %ld\n", fileinfo.st_size);
 
-    fileSize = htonl((long)fileinfo.st_size);
+    fileSize = (long) fileinfo.st_size;
 
     if (send(gn, &fileSize, sizeof(long), 0) != sizeof(long)) {
         fprintf(stderr, "Blad przy wysylaniu wielkosci pliku\n");

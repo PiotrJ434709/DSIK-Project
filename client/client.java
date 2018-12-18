@@ -31,8 +31,8 @@ public class client {
             System.out.println("Wysylam sciezke: " + path);
             dos.write(path.getBytes(), 0, path.length());
 
-            int fileSize = dis.readInt();
-            dis.skipBytes(4);
+            long fileSize = dis.readLong();
+	    fileSize = Long.reverseBytes(fileSize);
 
             if(fileSize == 0){
                 System.out.println("Serwer: *** Plik nie istnieje *** \n");
@@ -47,7 +47,7 @@ public class client {
             FileOutputStream fos = new FileOutputStream(fileName);
 
             int received;
-            int allReceived = 0;
+            long allReceived = 0;
 
             while (allReceived < fileSize) {
                 received = dis.read(buffer, 0, 1024);
@@ -103,6 +103,9 @@ public class client {
             System.out.println("Plik ma rozmiar: " + fileSize);
             System.out.println("Wysylam rozmiar pliku...");
 
+	    //fileSize = Long.reverseBytes(fileSize);
+	    //dos.writeLong(fileSize);
+	    
             ByteBuffer buf = ByteBuffer.allocate(Long.BYTES);
             buf.order(ByteOrder.LITTLE_ENDIAN);
             buf.putLong(fileSize);
@@ -112,7 +115,7 @@ public class client {
             System.out.println("Wysylam plik...");
 
             int read;
-            int allRead = 0;
+            long allRead = 0;
 
             FileInputStream fis = new FileInputStream(f);
 
